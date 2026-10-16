@@ -3,199 +3,225 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bintan — Negeri Segantang Lada</title>
+<title>Bintan — Negeri Segantang Lada (Scrollytelling)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#0a1a22;
-    --deep:#0e2a35;
-    --sea:#0f3b46;
-    --foam:#cfe9ec;
-    --gold:#d8b36a;
-    --sand:#e8d8b0;
+    --gold:#d8b36a; --foam:#cfe9ec; --ink:#041218;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%;overflow:hidden;background:var(--ink);font-family:'Inter',sans-serif;color:#f4f1e8}
-  #scene{position:fixed;inset:0;overflow:hidden}
+  html{scroll-behavior:smooth}
+  body{background:var(--ink);color:#f4f1e8;font-family:'Inter',sans-serif;overflow-x:hidden}
 
-  /* SKY — layered gradient, slow breathing */
-  #sky{
-    position:absolute;inset:0;
-    background:
-      radial-gradient(120% 90% at 70% 10%, #163d4a 0%, #0e2a35 45%, #0a1a22 78%);
+  /* ============ SCENE (pinned background) ============ */
+  #scene{
+    position:fixed;inset:0;z-index:0;overflow:hidden;
+    background:linear-gradient(175deg,#0b2230 0%,#0e2c38 38%,#123b47 72%,#0a1c24 100%);
+    transition:background 1s linear;
   }
-
-  /* MOON */
+  /* moon */
   #moon{
-    position:absolute;top:12%;right:15%;width:min(26vw,220px);aspect-ratio:1/1;border-radius:50%;
-    background:radial-gradient(circle at 35% 35%, #fff7e6, #f3e0ad 55%, #d9b968);
-    box-shadow:0 0 60px 20px rgba(240,215,150,.35), 0 0 140px 60px rgba(220,190,130,.12);
-    opacity:0;animation:rise 6s ease forwards 1s;
-    background-clip:padding-box;
+    position:absolute;top:14%;left:50%;width:min(24vw,200px);aspect-ratio:1/1;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#fff7e6,#f3e0ad 55%,#d9b968);
+    box-shadow:0 0 50px 18px rgba(240,215,150,.28);
+    transform:translate(-50%,0);
+    will-change:transform,top,opacity;
   }
-  .moon-crater{position:absolute;border-radius:50%;background:rgba(200,170,110,.28)}
-  .mc1{width:18%;height:18%;top:30%;left:25%}
-  .mc2{width:12%;height:12%;top:55%;left:50%}
-  .mc3{width:9%;height:9%;top:45%;left:70%}
-  @keyframes rise{0%{opacity:0;transform:translateY(30px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+  .cr{position:absolute;border-radius:50%;background:rgba(200,170,110,.28)}
+  .c1{width:16%;height:16%;top:32%;left:26%}
+  .c2{width:12%;height:12%;top:55%;left:50%}
+  .c3{width:8%;height:8%;top:46%;left:70%}
 
-  /* STARS */
   .star{position:absolute;background:#fff;border-radius:50%;opacity:.7}
-  .star-small{width:1.5px;height:1.5px}
-  .star-mid{width:2.5px;height:2.5px}
-  .star-big{width:3.5px;height:3.5px;box-shadow:0 0 8px 2px rgba(255,255,255,.5)}
-  .tw{animation:twinkle 4s ease-in-out infinite}
-  @keyframes twinkle{0%,100%{opacity:.25}50%{opacity:.9}}
+  .tw{animation:tw 4s ease-in-out infinite}
+  @keyframes tw{0%,100%{opacity:.2}50%{opacity:.9}}
 
-  /* ISLAND SILHOUETTE */
-  #island{position:absolute;left:-5%;right:-5%;bottom:0;height:42%;z-index:2;opacity:0;animation:rise2 6s ease forwards 2.2s}
-  @keyframes rise2{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+  /* island layers (transform by scroll) */
+  #island{
+    position:absolute;left:-5%;right:-5%;bottom:0;height:44%;z-index:2;
+    will-change:transform;
+  }
   #island svg{width:100%;height:100%;display:block}
 
-  /* SEA — animated layered waves */
-  #sea{position:absolute;left:0;right:0;bottom:0;height:38%;z-index:3;opacity:0;animation:rise2 6s ease forwards 2.6s}
-  .wave{position:absolute;left:0;bottom:0;width:200%;height:100%;
-    background-repeat:repeat-x;background-size:50% 100%;
-    opacity:.55}
-  #w1{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120"><path d="M0 60 Q50 30 100 55 T200 55 T300 55 T400 55 V120 H0 Z" fill="%23134a56"/></svg>');animation:wave1 8s linear infinite}
-  #w2{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120"><path d="M0 70 Q50 95 100 70 T200 70 T300 70 T400 70 V120 H0 Z" fill="%230f3f4b"/></svg>');animation:wave2 11s linear infinite;opacity:.75}
-  #w3{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120"><path d="M0 85 Q50 75 100 85 T200 85 T300 85 T400 85 V120 H0 Z" fill="%23163740"/></svg>');animation:wave1 14s linear infinite;opacity:.9}
-  #sheen{position:absolute;left:5%;right:5%;bottom:18%;height:220px;z-index:4;opacity:0;animation:sheen 8s ease-in-out infinite 4s}
-  @keyframes wave1{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-  @keyframes wave2{0%{transform:translateX(-50%)}100%{transform:translateX(0)}}
-  @keyframes sheen{
-    0%,100%{opacity:0}
-    40%{opacity:.25}
-    60%{opacity:.15}
-  }
+  /* sea waves */
+  #sea{position:absolute;left:0;right:0;bottom:0;height:34%;z-index:3}
+  .wave{position:absolute;left:0;bottom:0;width:200%;height:100%;background-repeat:repeat-x;background-size:50% 100%}
+  #w1{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120"><path d="M0 60 Q50 30 100 55 T200 55 T300 55 T400 55 V120 H0 Z" fill="%23124a56"/></svg>');animation:w1 8s linear infinite;opacity:.5}
+  #w2{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120"><path d="M0 70 Q50 95 100 70 T200 70 T300 70 T400 70 V120 H0 Z" fill="%230f3f4b"/></svg>');animation:w2 11s linear infinite;opacity:.72}
+  #w3{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120"><path d="M0 85 Q50 75 100 85 T200 85 T300 85 T400 85 V120 H0 Z" fill="%230e3038"/></svg>');animation:w1 14s linear infinite;opacity:.9}
+  @keyframes w1{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  @keyframes w2{0%{transform:translateX(-50%)}100%{transform:translateX(0)}}
 
-  /* POETIC TYPE — word by word */
-  #poem{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 8vw}
-  .eyebrow{
-    font-size:clamp(10px,1.6vw,14px);letter-spacing:.5em;text-transform:uppercase;
-    color:var(--gold);opacity:0;animation:fadeUp 1.6s ease forwards 3.2s;margin-bottom:clamp(16px,3vh,34px)
-  }
-  .title{
-    font-family:'Cormorant Garamond',serif;font-weight:400;
-    font-size:clamp(2.6rem,9vw,6.5rem);line-height:1.02;
-    letter-spacing:.02em;color:#f8f4ea;
-    text-shadow:0 8px 40px rgba(0,0,0,.55);
-    max-width:16ch;margin:0 auto
-  }
-  .title .accent{font-style:italic;color:var(--gold)}
-  .title .w{display:inline-block;opacity:0;animation:wordReveal .8s ease forwards;will-change:transform,opacity}
-  @keyframes wordReveal{0%{opacity:0;transform:translateY(0.6em) blur(6px)}100%{opacity:1;transform:translateY(0) blur(0)}}
-  .verse{
-    margin-top:clamp(18px,3.4vh,34px);
-    font-family:'Cormorant Garamond',serif;font-style:italic;
-    font-size:clamp(1rem,2.6vw,1.5rem);color:rgba(244,241,232,.82);
-    max-width:34ch;line-height:1.7;
-    text-shadow:0 4px 20px rgba(0,0,0,.5);
-    opacity:0;animation:fadeUp 2s ease forwards 5.2s
-  }
-  @keyframes fadeUp{0%{opacity:0;transform:translateY(18px)}100%{opacity:1;transform:translateY(0)}}
-
-  /* CINEMATIC FRAME + VIGNETTE + GRAIN */
-  #frame{position:absolute;inset:0;z-index:10;pointer-events:none;
-    box-shadow:inset 0 0 120px rgba(0,0,0,.55);
-    background:radial-gradient(120% 100% at 50% 40%, transparent 55%, rgba(4,12,16,.55) 100%)}
-  #grain{position:absolute;inset:-50%;z-index:11;pointer-events:none;opacity:.05;
+  /* film grain + vignette */
+  #frame{position:fixed;inset:0;z-index:20;pointer-events:none;
+    box-shadow:inset 0 0 140px rgba(0,0,0,.6);
+    background:radial-gradient(120% 100% at 50% 40%, transparent 55%, rgba(3,10,14,.55) 100%)}
+  #grain{position:fixed;inset:-50%;z-index:21;pointer-events:none;opacity:.05;
     background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/></filter><rect width="200" height="200" filter="url(%23n)"/></svg>');
-    animation:grain 6s steps(10) infinite}
-  @keyframes grain{0%,100%{transform:translate(0,0)}25%{transform:translate(-5%,5%)}50%{transform:translate(3%,-3%)}75%{transform:translate(-3%,-5%)}}
+    animation:gr 6s steps(10) infinite}
+  @keyframes gr{0%,100%{transform:translate(0,0)}25%{transform:translate(-5%,5%)}50%{transform:translate(3%,-3%)}75%{transform:translate(-3%,-5%)}}
 
-  .sig{position:absolute;bottom:18px;left:0;right:0;text-align:center;z-index:12;
-    font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:rgba(244,241,232,.4);
-    opacity:0;animation:fadeUp 2s ease forwards 6s}
+  /* ============ SCROLL CHAPTERS ============ */
+  main{position:relative;z-index:5}
+  .chapter{
+    position:relative;height:100vh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;
+    padding:0 8vw;
+  }
+  .chapter .num{font-size:12px;letter-spacing:.5em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+  .chapter h2{
+    font-family:'Cormorant Garamond',serif;font-weight:400;
+    font-size:clamp(2.2rem,7vw,5rem);line-height:1.05;max-width:16ch;
+  }
+  .chapter p{
+    margin-top:18px;font-family:'Cormorant Garamond',serif;font-style:italic;
+    font-size:clamp(1rem,2.4vw,1.45rem);color:rgba(244,241,232,.85);max-width:36ch;line-height:1.7;
+  }
+  .chapter small{display:block;margin-top:12px;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:rgba(244,241,232,.45)}
 
-  @media (max-width:700px){#moon{top:7%;right:8%;width:34vw}}
+  /* reveal-on-scroll states */
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity 1s ease,transform 1s ease}
+  .reveal.in{opacity:1;transform:translateY(0)}
+
+  /* progress rail */
+  #rail{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;gap:14px}
+  #rail i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .4s}
+  #rail i.on{background:var(--gold);transform:scale(1.4);box-shadow:0 0 10px rgba(216,179,106,.8)}
+
+  @media(max-width:700px){#moon{width:34vw}}
 </style>
 </head>
 <body>
+
+<!-- PINNED SCENE -->
 <div id="scene">
-  <div id="sky">
-    <!-- random stars injected by JS -->
-  </div>
-
-  <div id="moon">
-    <div class="moon-crater mc1"></div>
-    <div class="moon-crater mc2"></div>
-    <div class="moon-crater mc3"></div>
-  </div>
-
+  <div id="moon"><div class="cr c1"></div><div class="cr c2"></div><div class="cr c3"></div></div>
   <div id="island">
     <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
-      <path d="M0 220 L120 160 L240 195 L360 90 L430 140 L540 70 L620 130 L700 95 L820 160 L940 110 L1060 175 L1180 140 L1320 185 L1440 150 L1440 320 L0 320 Z"
-        fill="#0a1620"/>
-      <path d="M0 320 L0 240 L160 185 L360 300 L560 250 L720 205 L900 265 L1080 210 L1260 290 L1440 235 L1440 320 Z"
-        fill="#081219"/>
+      <path d="M0 220 L120 160 L240 195 L360 90 L430 140 L540 70 L620 130 L700 95 L820 160 L940 110 L1060 175 L1180 140 L1320 185 L1440 150 L1440 320 L0 320 Z" fill="#0a1620"/>
+      <path d="M0 320 L0 240 L160 185 L360 300 L560 250 L720 205 L900 265 L1080 210 L1260 290 L1440 235 L1440 320 Z" fill="#081219"/>
     </svg>
   </div>
-
   <div id="sea">
     <div class="wave" id="w1"></div>
     <div class="wave" id="w2"></div>
     <div class="wave" id="w3"></div>
-    <div id="sheen"></div>
   </div>
-
-  <div id="poem">
-    <div class="eyebrow">Pulau — Surat dari Selatan</div>
-    <h1 class="title" id="title"></h1>
-    <div class="verse">angin menyulam namamu di antara pasir dan gelombang,
-      sampai laut lupa caranya berhenti bernyanyi.</div>
-  </div>
-
-  <div id="frame"></div>
-  <div id="grain"></div>
-  <div class="sig">Negeri Segantang Lada · Bintan</div>
 </div>
 
+<!-- PROGRESS RAIL -->
+<div id="rail">
+  <i></i><i></i><i></i><i></i><i></i><i></i>
+</div>
+
+<!-- CHAPTERS -->
+<main>
+  <section class="chapter" data-i="0">
+    <div class="reveal"><div class="num">Babak I · Malam</div>
+      <h2>Bintan,<br>negeri <em style="color:var(--gold)">segantang lada</em></h2>
+      <p>Seperti daun lada yang mengering di ambang senja, pulau ini menahan namanya sendiri.</p></div>
+  </section>
+
+  <section class="chapter" data-i="1">
+    <div class="reveal"><div class="num">Babak II · Bulan</div>
+      <h2>Bulan bergantung<br>di dahan air</h2>
+      <p>Ombak mengumpulkan cahaya di punggungnya, lalu membawanya pulang perlahan ke pantai.</p></div>
+  </section>
+
+  <section class="chapter" data-i="2">
+    <div class="reveal"><div class="num">Babak III · Laut</div>
+      <h2>Laut yang<br>tak lelah menulis</h2>
+      <p>Setiap gelombang adalah kalimat yang tak selesai — puisi yang dikirim ke hulu, tak pernah dibalas.</p></div>
+  </section>
+
+  <section class="chapter" data-i="3">
+    <div class="reveal"><div class="num">Babak IV · Hutan</div>
+      <h2>Mangrove merengkuh<br>akar dan masa lalu</h2>
+      <p>Akar-akar itu lebih tua dari siapa pun yang menamai pulau; merekalah penjaga pintu air senyap.</p></div>
+  </section>
+
+  <section class="chapter" data-i="4">
+    <div class="reveal"><div class="num">Babak V · Nelayan</div>
+      <h2>Perahu bertanya<br>pada kemudi senja</h2>
+      <p>Lampu-lampu kecil berenang di kejauhan — nelayan menyulam siluet di atas tikar laut.</p></div>
+  </section>
+
+  <section class="chapter" data-i="5">
+    <div class="reveal"><div class="num">Babak VI · Fajar</div>
+      <h2>Dan pagi menyimpan<br>janji pulau</h2>
+      <p>Angin menerjemahkan kembali semua puisi yang tercecer — untukmu, untuk Bintan, untuk yang kembali.</p>
+      <small>Negeri Segantang Lada · scrollytelling</small></div>
+  </section>
+</main>
+
+<div id="frame"></div>
+<div id="grain"></div>
+
 <script>
-  // --- stars ---
+  // --- stars into scene ---
   (function(){
-    const sky = document.getElementById('bg') || document.body;
-    const skyEl = document.getElementById('sky');
-    const W = window.innerWidth, H = window.innerHeight;
-    const n = W < 700 ? 60 : 110;
+    const scene=document.getElementById('scene');
+    const n=window.innerWidth<700?90:160;
     for(let i=0;i<n;i++){
-      const s = document.createElement('div');
-      const r = Math.random();
-      s.className = 'star ' + (r<.7?'star-small': r<.92?'star-mid':'star-big') + (Math.random()<.5?' tw':'');
-      s.style.left = (Math.random()*100)+'%';
-      s.style.top = (Math.random()*72)+'%'; /* above sea */
-      if(Math.random()<.5) s.style.animationDelay = (Math.random()*5)+'s';
-      skyEl.appendChild(s);
+      const s=document.createElement('div');
+      const r=Math.random();
+      s.className='star'+(r<.1?' tw':'');
+      s.style.width=s.style.height=(Math.random()<.85?'1.5px':'2.8px');
+      s.style.left=Math.random()*100+'%';
+      s.style.top=Math.random()*68+'%';
+      if(r<.1)s.style.animationDelay=(Math.random()*4)+'s';
+      scene.appendChild(s);
     }
   })();
-</script>
-<script>
-  // --- word-by-word reveal for title ---
-  (function(){
-    const fullLines = [
-      ['Bintan,','negeri'],
-      ['segantang','lada']
-    ];
-    const titleEl = document.getElementById('title');
-    let totalWords = 0;
-    const allWords = [];
-    fullLines.forEach((line, li)=>{
-      line.forEach(word=>{
-        const w = document.createElement('span');
-        w.className = 'w' + (word==='segantang'||word==='lada' ? ' accent':'');
-        w.textContent = word;
-        w.style.animationDelay = (3.6 + totalWords*0.18)+'s';
-        allWords.push(w);
-        titleEl.appendChild(w);
-        totalWords++;
-      });
-      if(li < fullLines.length-1){
-        titleEl.appendChild(document.createElement('br'));
-      }
+
+  // --- chapter reveal + scene morph + rail ---
+  const chapters=Array.from(document.querySelectorAll('.chapter'));
+  const rail=Array.from(document.querySelectorAll('#rail i'));
+  const moon=document.getElementById('moon');
+  const island=document.getElementById('island');
+  const scene=document.getElementById('scene');
+  const total=chapters.length;
+
+  const scenePalettes=[
+    'linear-gradient(175deg,#0b2230 0%,#0e2c38 38%,#123b47 72%,#0a1c24 100%)',
+    'linear-gradient(175deg,#0d2030 0%,#13303d 40%,#144047 72%,#0b1d25 100%)',
+    'linear-gradient(175deg,#0c2636 0%,#123842 40%,#0f3a44 72%,#0a1e28 100%)',
+    'linear-gradient(175deg,#11332a 0%,#16433a 40%,#0f3a44 72%,#0a202c 100%)',
+    'linear-gradient(175deg,#3a1e2a 0%,#5a3540 45%,#2a3b48 75%,#0b1e28 100%)',
+    'linear-gradient(175deg,#b06a3a 0%,#c98b54 30%,#7a5a52 55%,#24404a 78%,#142c36 100%)'
+  ];
+
+  function onScroll(){
+    const vh=window.innerHeight;
+    const st=window.scrollY;
+    // which chapter is in view
+    let active=0;
+    chapters.forEach((c,i)=>{
+      const top=c.offsetTop;
+      if(st+vh*0.5>top) active=i;
     });
-  })();
+    // reveal
+    chapters.forEach(c=>{
+      const r=c.querySelector('.reveal');
+      const top=c.offsetTop;
+      const visible = st+vh*0.8>top && st < top+vh*0.9;
+      if(visible) r.classList.add('in'); else r.classList.remove('in');
+    });
+    // rail
+    rail.forEach((d,i)=>d.classList.toggle('on',i===active));
+    // scene palette
+    scene.style.background=scenePalettes[active];
+    // moon drifts up + fades at dawn
+    const p=active/(total-1);
+    moon.style.top=(14- p*9)+'%';
+    moon.style.opacity=1-Math.max(0,(p-0.75))*3;
+    // island rises/sinks subtly with scroll
+    island.style.transform=`translateY(${ (active* -12)}px) scale(${1-p*0.08})`;
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
 </script>
 </body>
 </html>
