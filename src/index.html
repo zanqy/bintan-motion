@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id" class="no-js">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bintan — Motion (Sastra & Seni)</title>
+<meta name="description" content="Motion graphics eksperimental bertema Pulau Bintan, berkarya sastra dan seni." />
+<style>
+  :root {
+    --font-body: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+    --c-peak: #0f2b22;     /* hutan dalam */
+    --c-mid:  #1e5a42;     /* hutan sedang */
+    --c-base: #3e8e5e;     /* hutan terbuka */
+    --c-beach:#f7e7c2;     /* pasir/pantai */
+    --c-sunset:#ffd36d;   /* senja */
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;font-family:var(--font-body);overflow:hidden;background:#000;color:#0f2b22}
+  body{display:flex;align-items:center;justify-content:center;text-align:center}
+  #scene{position:fixed;inset:0;width:100vw;height:100vh;display:block}
+  canvas{display:block}
+  .poetry{
+    position:relative; z-index:3;
+    max-width:640px; padding:2rem 1.5rem;
+    color:var(--c-peak);
+  }
+  .poetry h1{
+    font-size:clamp(3rem,9vw,7rem);
+    font-weight:500; letter-spacing:-0.03em; line-height:.9;
+    background:linear-gradient(160deg, var(--c-base) 0%, var(--c-sunset) 100%);
+    -webkit-background-clip:text; background-clip:text;
+    color:transparent;
+    opacity:0; transform:translateY(48px);
+    animation:reveal 2200ms cubic-bezier(.22,.08,.22,1) forwards 500ms;
+  }
+  .poetry .subtitle{
+    font-size:clamp(1rem,2.4vw,1.4rem);
+    font-style:italic; opacity:.85; margin-top:1rem;
+    opacity:0; animation:fadeIn 1400ms ease-out forwards 1800ms;
+  }
+  @keyframes reveal {
+    0%{opacity:0;transform:translateY(60px) scale(.96)}
+    12%{color:var(--c-sunset)}
+    100%{opacity:1;transform:translateY(0) scale(1)}
+  }
+  @keyframes fadeIn{
+    to{opacity:.85;transform:translateY(0)}
+  }
+  .credit{
+    position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);
+    font-size:.8rem;opacity:.5;z-index:4;color:var(--c-peak);font-style:italic
+  }
+  /* preloader */
+  #pre{position:fixed;inset:0;background:#000;color:#fff;display:grid;place-items:center;z-index:9999;font-family:sans-serif}
+  .bar{height:2px;background:#fff;width:0%;margin-top:1rem;transition:.2s}
+</style>
+</head>
+<body>
+<div id="pre"><div class="title">Menyiapkan <em>Bintan</em></div><div class="bar" id="bar"></div></div>
+<canvas id="scene"></canvas>
+<main class="poetry" aria-label="Sajak gerak: Bintan">
+  <h1 id="title">Bintan</h1>
+  <div class="subtitle" id="sub">laut yang menggurnulkan kabawa sastra</div>
+</main>
+<div class="credit">A motion experiment — sastra & seni · OpenClaw</div>
+
+<script>
+/*
+  Bintan motion: parallax layers + particles + reveal.
+  Pure canvas + vanilla JS. No deps.
+*/
+(() => {
+  // ---- DOM / state ----
+  const canvas = document.getElementById('scene');
+  const ctx = canvas.getContext('2d');
+  let W, H, dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  const layers = [
+    { y: .92, h: .18, c: getComputedStyle(document.documentElement).getPropertyValue('--c-base') },
+    { y: .70, h: .22, c: getComputedStyle(document.documentElement).getPropertyValue('--c-mid') },
+    { y: .42, h: .30, c: getComputedStyle(document.documentElement).getPropertyValue('--c-peak') },
+  ];
+  // particles
+  const particles = [];
+  const N_PART = 90;
+  for (let i=0;i<N_PART;i++){
+    particles.push({
+      x: Math.random(),
+      y: Math.random(),
+      r: Math.random()*1.6 + .4,
+      s: Math.random()*.02 + .04,
+      a: Math.random()*.5 + .25
+    });
+  }
+
+  function resize(){
+    W = canvas.offsetWidth; H = canvas.offsetHeight;
+    canvas.width = W*dpr; canvas.height = H*dpr;
+    ctx.scale(dpr,dpr);
+  }
+  let progress = 0;
+  let started = false;
+  const title = document.getElementById('title');
+  const sub = document.getElementById('sub');
+  const pre = document.getElementById('pre');
+  const bar = document.getElementById('bar');
+
+  function drawLayer(l, t){
+    const yy = t + l.y*H;
+    ctx.fillStyle = l.c;
+    ctx.fillRect(0, yy, W, l.h*H);
+  }
+  function drawMountains(t, spd){
+    const amp = 34;
+    ctx.beginPath();
+    ctx.moveTo(0, H*.42);
+    const step = 24;
+    for(let x=0;x<=W;x+=step){
+      const waveA = Math.sin((x*0.004) + t*spd*0.08) * amp;
+      const waveB = Math.sin((x*0.0018) + t*spd*0.16) * (amp*1.7);
+      ctx.lineTo(x, H*.42 + waveA + waveB + 6);
+    }
+    ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--c-peak');
+    ctx.fill();
+  }
+  function drawParticles(t){
+    ctx.save();
+    ctx.fillStyle = '#ffffff70';
+    particles.forEach(p=>{
+      const drift = Math.sin(t*0.3 + p.x)*1.8;
+      const x = (p.x*W + drift*0.5 + t*p.s*W*0.3) % W;
+      const y = (p.y*H + Math.sin(t*0.2+p.x*3)*6) % H;
+      const yy = (y + H) % H;
+      ctx.globalAlpha = p.a + Math.abs(drift)*.02;
+      ctx.beginPath(); ctx.arc(x, yy, p.r, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.restore();
+  }
+  function frame(ts){
+    const t = ts*0.0006; // 1x speed; we'll multiply by progress
+    ctx.clearRect(0,0,W,H);
+    layers.forEach(l=>drawLayer(l, t));
+    drawMountains(t, .5);
+    drawParticles(t);
+    requestAnimationFrame(frame);
+  }
+
+  function loop(){
+    requestAnimationFrame(frame);
+    if(!started) return;
+    progress = Math.min(1, progress + 1/140); // ~1.7s
+    // text reveal already on CSS; subtitle delay baked
+    if(progress>=1){
+      // done: hide preloader, start motion
+      started=true;
+    }
+  }
+
+  // ---- preloader simulation ----
+  let pct=0;
+  const itv = setInterval(()=>{
+    pct = Math.min(100, pct + Math.random()*7 + 3);
+    bar.style.width = pct+'%';
+    if(pct>=100){
+      clearInterval(itv);
+      bar.style.width = '100%';
+      setTimeout(()=>{
+        pre.classList.add('done');
+        pre.style.opacity='0'; pre.style.transition='opacity .7s ease';
+        setTimeout(()=>{ pre.remove(); started=true; loop(); }, 900);
+      }, 300);
+    }
+  }, 120);
+
+  window.addEventListener('resize', ()=>{ dpr=Math.min(window.devicePixelRatio||1,2); resize(); });
+  resize();
+  // kick motion loop immediately (so it's visible even before 'started' it still draws static-ish)
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
+<style>
+/* fonts fallback */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&display=swap');
+:root{font-family:'Cormorant Garamond',Georgia,serif}
+</style>
